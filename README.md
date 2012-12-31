@@ -1,4 +1,4 @@
 NTUMEMSOpenVPN
 ==============
 
-NTUMEMSOpenVPN, an cusutomized OpenVPN client based on Securepoint SSL VPN (http://sourceforge.net/projects/securepoint/).
+NTUMEMSOpenVPN, a cusutomized OpenVPN client based on Securepoint SSL VPN (http://sourceforge.net/projects/securepoint/).
