@@ -732,7 +732,8 @@ void Preferences::openInfo()
 
 void Preferences::on_cmdClose_clicked()
 {
-    this->close();
+    //this->close();
+    this->closeApp();  //Jeremy '12,12,31
 }
 
 void Preferences::manageConnections ()

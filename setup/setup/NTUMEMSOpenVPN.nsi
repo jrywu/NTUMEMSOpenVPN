@@ -5,7 +5,7 @@
 
 ; MUI Settings
 !define MUI_ABORTWARNING
-!define MUI_ICON "..\openvpncl.ico"
+!define MUI_ICON "openvpncl.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 
 !define PRODUCT_NAME "NTUMEMS OpenVPN Client"

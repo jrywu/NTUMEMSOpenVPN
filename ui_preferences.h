@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'preferences.ui'
 **
-** Created: Mon Dec 31 03:17:52 2012
+** Created: Mon Dec 31 20:47:47 2012
 **      by: Qt User Interface Compiler version 4.8.4
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -582,7 +582,7 @@ public:
         cmdToggleExtensions->setToolTip(QApplication::translate("Preferences", "Show advanced settings", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_TOOLTIP
         cmdToggleExtensions->setText(QString());
-        cmdClose->setText(QApplication::translate("Preferences", "     &Close", 0, QApplication::UnicodeUTF8));
+        cmdClose->setText(QApplication::translate("Preferences", "     &Quit", 0, QApplication::UnicodeUTF8));
         groupBox->setTitle(QApplication::translate("Preferences", "Advanced:", 0, QApplication::UnicodeUTF8));
         groupBox_2->setTitle(QApplication::translate("Preferences", "General:", 0, QApplication::UnicodeUTF8));
         label_12->setText(QApplication::translate("Preferences", "Language:", 0, QApplication::UnicodeUTF8));

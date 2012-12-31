@@ -150,7 +150,8 @@ int main(int argc, char *argv[])
     if (Settings::getInstance()->getIsStartCommandConfig()) {
         // Wenn eine Config angeben ist, immer das Fenster öffenen
         Preferences::instance()->openDialog(Settings::getInstance()->getIsStartCommandConfig(), Settings::getInstance()->getCommandConfigPath().replace("\\", "/"));
-    }
+    }else
+        Preferences::instance()->openDialog(false, QString ("")); //Jeremy '12,12,31 open dialog anyway.
 
     // Anwendung ohne Dialog starten
     return app.exec();
