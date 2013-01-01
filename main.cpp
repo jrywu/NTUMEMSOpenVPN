@@ -41,7 +41,10 @@ int main(int argc, char *argv[])
     for (int x = 0; x < argc; x++) {
         if (0 == strcmp (argv[x], "-start") && x + 1 < argc) {
             // Config starten
-            Settings::getInstance()->setIsStartCommandConfig(true);
+            if(!Settings::getInstance()->getIsStartCommandConfig()){
+                Settings::getInstance()->setIsStartCommandConfig(true,true);
+                Settings::getInstance()->setCommandConfigPath(argv[x + 1],true); //Jeremy '13,1,1 add save=true to save startup config into ini.
+            }
             Settings::getInstance()->setCommandConfigPath(argv[x + 1]);
         } else if (0 == strcmp(argv[x], "-noService")) {
             // Es soll kein Dienst verwendet werden

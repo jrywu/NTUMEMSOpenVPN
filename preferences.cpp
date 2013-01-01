@@ -85,7 +85,7 @@ Preferences::Preferences() :
     this->setWindowFlags(Qt::WindowCloseButtonHint);
 
     // Set window title
-    QString titleAdd (QObject::tr(" - portable"));
+    QString titleAdd (QObject::tr(""));// - portable"));
     // Ist der Client mit manage aufgerufen?
     if (Settings::getInstance()->getIsManageClient()) {
         titleAdd = QObject::tr(" - manage");
