@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'appinfo.ui'
 **
-** Created: Mon Dec 31 03:17:52 2012
+** Created: Thu Jan 3 20:01:01 2013
 **      by: Qt User Interface Compiler version 4.8.4
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -27,11 +27,9 @@ public:
     QLabel *label;
     QLabel *label_3;
     QLabel *label_4;
-    QLabel *label_5;
-    QLabel *label_6;
     QPushButton *cmdClose;
-    QLabel *label_11;
     QLabel *label_7;
+    QLabel *label_8;
 
     void setupUi(QDialog *appInfo)
     {
@@ -62,18 +60,10 @@ public:
         label_3->setAlignment(Qt::AlignCenter);
         label_4 = new QLabel(appInfo);
         label_4->setObjectName(QString::fromUtf8("label_4"));
-        label_4->setGeometry(QRect(-20, 40, 411, 16));
-        label_5 = new QLabel(appInfo);
-        label_5->setObjectName(QString::fromUtf8("label_5"));
-        label_5->setGeometry(QRect(90, 60, 221, 20));
-        label_5->setAlignment(Qt::AlignCenter);
-        label_6 = new QLabel(appInfo);
-        label_6->setObjectName(QString::fromUtf8("label_6"));
-        label_6->setGeometry(QRect(140, 80, 111, 20));
-        label_6->setAlignment(Qt::AlignCenter);
+        label_4->setGeometry(QRect(-20, 60, 411, 16));
         cmdClose = new QPushButton(appInfo);
         cmdClose->setObjectName(QString::fromUtf8("cmdClose"));
-        cmdClose->setGeometry(QRect(280, 110, 100, 33));
+        cmdClose->setGeometry(QRect(290, 110, 100, 33));
         cmdClose->setStyleSheet(QString::fromUtf8(":enabled {border: 1px solid black}\n"
 ":disabled {border: 1px solid black}\n"
 ":hover {background-color: rgb(195, 195, 195);}"));
@@ -83,13 +73,14 @@ public:
         cmdClose->setIconSize(QSize(22, 22));
         cmdClose->setDefault(true);
         cmdClose->setFlat(true);
-        label_11 = new QLabel(appInfo);
-        label_11->setObjectName(QString::fromUtf8("label_11"));
-        label_11->setGeometry(QRect(40, 120, 111, 16));
         label_7 = new QLabel(appInfo);
         label_7->setObjectName(QString::fromUtf8("label_7"));
         label_7->setGeometry(QRect(90, 30, 221, 20));
         label_7->setAlignment(Qt::AlignCenter);
+        label_8 = new QLabel(appInfo);
+        label_8->setObjectName(QString::fromUtf8("label_8"));
+        label_8->setGeometry(QRect(50, 50, 321, 20));
+        label_8->setAlignment(Qt::AlignCenter);
 
         retranslateUi(appInfo);
 
@@ -100,13 +91,11 @@ public:
     {
         appInfo->setWindowTitle(QApplication::translate("appInfo", "About", 0, QApplication::UnicodeUTF8));
         label->setText(QString());
-        label_3->setText(QApplication::translate("appInfo", "NTUMEMS OpevnVpn CLient 0.9.7", 0, QApplication::UnicodeUTF8));
+        label_3->setText(QApplication::translate("appInfo", "NTUMEMS OpevnVpn Client 0.9.7", 0, QApplication::UnicodeUTF8));
         label_4->setText(QApplication::translate("appInfo", "_____________________________________________________________________", 0, QApplication::UnicodeUTF8));
-        label_5->setText(QApplication::translate("appInfo", "For NTUMEMS Group Internal Use Only!! ", 0, QApplication::UnicodeUTF8));
-        label_6->setText(QApplication::translate("appInfo", "Do not redistribute!!", 0, QApplication::UnicodeUTF8));
         cmdClose->setText(QApplication::translate("appInfo", "&Close", 0, QApplication::UnicodeUTF8));
-        label_11->setText(QApplication::translate("appInfo", "intra.ntumems.net", 0, QApplication::UnicodeUTF8));
         label_7->setText(QApplication::translate("appInfo", "Based on Securepoint SSL VPN.", 0, QApplication::UnicodeUTF8));
+        label_8->setText(QApplication::translate("appInfo", "Source available at https://github.com/jrywu/NTUMEMSOpenVPN", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

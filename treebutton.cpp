@@ -218,6 +218,7 @@ void TreeButton::clickMe()
                     return;
                 }
             }
+            this->getParentItemCast()->getOpenVPN()->enableAllMenus();
             // Es soll ein Disconnect durchgeführt werden
             this->setEnabled(false);
             if (Settings::getInstance()->getIsRunAsSevice()) {
@@ -238,9 +239,10 @@ void TreeButton::clickMe()
                 this->setConnecting();
                 this->getParentItemCast()->getOpenVPN()->setIsConnecting(true);
                 Preferences::instance()->setIcon();
-
+                this->getParentItemCast()->getOpenVPN()->disableMenues();
                 // Script vor dem Connect ausführen
                 this->getParentItemCast()->getOpenVPN()->runScript(QLatin1String("BC"));
+
                 // Log löschen
                 ServiceLogData::instance()->clearId(this->getParentItemCast()->getOpenVPN()->id());
                 // Verbinden senden

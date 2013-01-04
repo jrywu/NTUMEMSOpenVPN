@@ -27,7 +27,7 @@ OutFile "NTUMEMSOpenVPN.exe"
 ;Pages
 
 Var finishParm
-Var isManage
+;Var isManage
 
 
   !define MUI_PAGE_CUSTOMFUNCTION_PRE WelcomePageSetupLinkPre
@@ -49,6 +49,7 @@ Var isManage
   !insertmacro MUI_PAGE_FINISH
  
  
+ 
 
  !insertmacro MUI_LANGUAGE "English"
 
@@ -60,9 +61,9 @@ LangString RemoveApp2 ${LANG_ENGLISH} " with all components?"
 LangString StopSecServMes ${LANG_ENGLISH} "Stopping Securepoint VPN Service"  
 LangString SecAppName ${LANG_ENGLISH} "Sp SSL VPN Client"  
 LangString SecServName ${LANG_ENGLISH} "Sp SSL VPN Service"
-LangString SecTapName ${LANG_ENGLISH} "TAP-Device" 
+LangString SecTapName ${LANG_ENGLISH} "Install a TAP-Device" 
 LangString SecOldTapName ${LANG_ENGLISH} "Remove old TAP-Devices"  
-LangString SecAllTapName ${LANG_ENGLISH} "Remove all TAP-Devices"  
+;LangString SecAllTapName ${LANG_ENGLISH} "Remove all TAP-Devices"  
 LangString Sec1Mes ${LANG_ENGLISH} "Install the NTUMEMS OpenVPN Client."
 LangString Sec2Mes ${LANG_ENGLISH} "Install the NTUMEMS OpenVPN Service. This is nessary if you want to make a connection without administrator rights."
 LangString Sec3Mes ${LANG_ENGLISH} "Install the OpenVPN TAP-Device. This is needed to make a connection with OpenVPN"
@@ -142,6 +143,7 @@ Section -AdditionalIcons
 SectionEnd
 
 Section -Post
+
   WriteUninstaller "$INSTDIR\uninst.exe"
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\openvpncl.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
@@ -149,6 +151,7 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\SPvpncl.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+  
 SectionEnd
 
 Section !$(SecServName) s2
@@ -186,7 +189,52 @@ Section !$(SecServName) s2
   nsExec::Exec '"$INSTDIR\sc.exe" start "Securepoint VPN"'
 SectionEnd
 
-Section $(SecTapName) s4
+; Remove old tap-devices
+Section $(SecOldTapName) s3
+  SectionGetFlags ${s1} $R0
+  IntOp $R0 $R0 & ${SF_SELECTED}
+  IntCmp $R0 ${SF_SELECTED} "" copyf copyf
+
+  goto deltap
+
+ copyf:
+  SetOverwrite on
+  SetOutPath "$INSTDIR\app\bin\"
+  File "..\app\bin\tapinstall.exe"
+  File "..\app\bin\tapinstall64.exe"
+
+  SetOutPath "$INSTDIR\app\bin\driver"
+  File "..\app\bin\driver\OemWin2k.inf"
+  File "..\app\bin\driver\tap0901.cat"
+  File "..\app\bin\driver\tap0901.sys"
+  
+  deltap:
+  System::Call "kernel32::GetCurrentProcess() i .s"
+  System::Call "kernel32::IsWow64Process(i s, *i .r0)"
+  IntCmp $0 0 deltap-32
+  
+    DetailPrint "REMOVE OLD 64-bit TAP drivers"
+    nsExec::ExecToLog '"$INSTDIR\app\bin\tapinstall64.exe" remove ${TAP}'
+    Pop $R0 # return value/error/timeout
+    ;DetailPrint "tapinstall remove 64-bit TAP returned: $R0"
+    ;nsExec::ExecToLog '"$INSTDIR\bin\tapinstall64.exe" remove TAPDEV'
+    ;Pop $R0 # return value/error/timeout
+    DetailPrint "Tapinstall64 remove TAPDEV returned: $R0"
+    goto deptap-ende
+    
+  deltap-32:
+    DetailPrint "REMOVE OLD TAP drivers"
+    nsExec::ExecToLog '"$INSTDIR\app\bin\tapinstall.exe" remove ${TAP}'
+    Pop $R0 # return value/error/timeout
+    ;DetailPrint "tapinstall remove TAP returned: $R0"
+    ;nsExec::ExecToLog '"$INSTDIR\app\bin\tapinstall.exe" remove TAPDEV'
+    ;Pop $R0 # return value/error/timeout
+    DetailPrint "tapinstall remove TAPDEV returned: $R0"
+  deptap-ende:
+SectionEnd
+
+; install TAP-Device
+Section $(SecTapName) s4  
   ;
   ; install
   ;
@@ -201,7 +249,7 @@ Section $(SecTapName) s4
     goto installtap
 
  copyf:
-  SetOverwrite on
+  SetOverwrite ifnewer
   SetOutPath "$INSTDIR\app\bin\"
   File "..\app\bin\tapinstall.exe"
   File "..\app\bin\tapinstall64.exe"
@@ -242,7 +290,7 @@ Section $(SecTapName) s4
   IntOp $5 $5 | $R0
   DetailPrint "tapinstall install returned: $R0"
   
- tapinstall_check_error:
+ ;tapinstall_check_error:
     DetailPrint "Tap install status: $5"
     IntCmp $5 0 notap
     MessageBox MB_OK "An error occurred installing the TAP-Win32 device driver."
@@ -252,39 +300,15 @@ tap-ende:
  
 SectionEnd
 
-Section $(SecOldTapName) s3
-  SectionGetFlags ${s1} $R0
-  IntOp $R0 $R0 & ${SF_SELECTED}
-  IntCmp $R0 ${SF_SELECTED} "" copyf copyf
 
-  goto deltap
-
- copyf:
-  SetOverwrite on
-  SetOutPath "$INSTDIR\app\bin\"
-  File "..\app\bin\tapinstall.exe"
-
-  SetOutPath "$INSTDIR\app\bin\driver"
-  File "..\app\bin\driver\OemWin2k.inf"
-  File "..\app\bin\driver\tap0901.cat"
-  File "..\app\bin\driver\tap0901.sys"
-      
- deltap:
-    DetailPrint "TAP-Win32 REMOVE OLD TAP"
-    nsExec::ExecToLog '"$INSTDIR\bin\tapinstall.exe" remove TAP'
-    Pop $R0 # return value/error/timeout
-    DetailPrint "tapinstall remove TAP returned: $R0"
-    nsExec::ExecToLog '"$INSTDIR\bin\tapinstall.exe" remove TAPDEV'
-    Pop $R0 # return value/error/timeout
-    DetailPrint "tapinstall remove TAPDEV returned: $R0"
-SectionEnd
-
+/*
+; Remove all tap-devices.
 Section /o $(SecAllTapName) s5 
   SectionGetFlags ${s1} $R0
   IntOp $R0 $R0 & ${SF_SELECTED}
   IntCmp $R0 ${SF_SELECTED} "" copyf copyf
 
-  goto deltap
+  goto delalltap
 
  copyf:
   SetOverwrite on
@@ -303,46 +327,55 @@ Section /o $(SecAllTapName) s5
   File "..\app\bin\driver\64bit\tap0901.cat"
   File "..\app\bin\driver\64bit\tap0901.sys"
   
+  delalltap:
   System::Call "kernel32::GetCurrentProcess() i .s"
   System::Call "kernel32::IsWow64Process(i s, *i .r0)"
   
-  IntCmp $0 0 deltap
+  IntCmp $0 0 delalltap32
   
- deltap64:
+ ;deltap64:
     DetailPrint "64 bit - TAP-Win32 REMOVE OLD TAP"
-    nsExec::ExecToLog '"$INSTDIR\bin\tapinstall64.exe" remove TAP'
+    nsExec::ExecToLog '"$INSTDIR\app\bin\tapinstall64.exe" remove TAP'
     Pop $R0 # return value/error/timeout
     DetailPrint "tapinstall remove TAP returned: $R0"
-    nsExec::ExecToLog '"$INSTDIR\bin\tapinstall64.exe" remove TAPDEV'
+    nsExec::ExecToLog '"$INSTDIR\app\bin\tapinstall64.exe" remove TAPDEV'
     Pop $R0 # return value/error/timeout
     DetailPrint "tapinstall remove TAPDEV returned: $R0"
-	nsExec::ExecToLog '"$INSTDIR\bin\tapinstall64.exe" remove tap0901'
+	nsExec::ExecToLog '"$INSTDIR\app\bin\tapinstall64.exe" remove tap0901'
     Pop $R0 # return value/error/timeout
     DetailPrint "tapinstall remove TAPDEV returned: $R0"
  
- goto deltap-ende
+ goto delalltap-ende
  
- deltap:
+ delalltap32:
     DetailPrint "TAP-Win32 REMOVE OLD TAP"
-    nsExec::ExecToLog '"$INSTDIR\bin\tapinstall.exe" remove TAP'
+    nsExec::ExecToLog '"$INSTDIR\app\bin\tapinstall.exe" remove TAP'
     Pop $R0 # return value/error/timeout
     DetailPrint "tapinstall remove TAP returned: $R0"
-    nsExec::ExecToLog '"$INSTDIR\bin\tapinstall.exe" remove TAPDEV'
+    nsExec::ExecToLog '"$INSTDIR\app\bin\tapinstall.exe" remove TAPDEV'
     Pop $R0 # return value/error/timeout
     DetailPrint "tapinstall remove TAPDEV returned: $R0"
-	nsExec::ExecToLog '"$INSTDIR\bin\tapinstall.exe" remove tap0901'
+	nsExec::ExecToLog '"$INSTDIR\app\bin\tapinstall.exe" remove tap0901'
     Pop $R0 # return value/error/timeout
     DetailPrint "tapinstall remove TAPDEV returned: $R0"
 
- deltap-ende:
-	
+ delalltap-ende:
+   
 SectionEnd
+*/
+
+Section -Log
+  StrCpy $0 "$INSTDIR\install.log"
+  Push $0
+  Call DumpLog
+SectionEnd
+
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${s1} "$(Sec1Mes)"
   !insertmacro MUI_DESCRIPTION_TEXT ${s2} "$(Sec2Mes)"
   !insertmacro MUI_DESCRIPTION_TEXT ${s4} "$(Sec3Mes)"
   !insertmacro MUI_DESCRIPTION_TEXT ${s3} "$(Sec4Mes)"  
-  !insertmacro MUI_DESCRIPTION_TEXT ${s5} "$(Sec5Mes)"
+  ;!insertmacro MUI_DESCRIPTION_TEXT ${s5} "$(Sec5Mes)"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 
@@ -386,7 +419,7 @@ Function MyCustomLeave
 	ende:
 FunctionEnd
 
-
+/*
 Function MyAppType
   ; Wenn Deutsch eingestellt ist deutsche Datei öffnen, sont eng
   !insertmacro MUI_HEADER_TEXT "$(StartMesHeadShort)" "$(StartMesHeadLong)"
@@ -416,7 +449,7 @@ Function MyAppTypeLeave
 	
 	ende:
 FunctionEnd
-
+*/
 
 Function WelcomePageSetupLinkPre
   !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "Settings" "Numfields" "4" ; increase counter
@@ -443,6 +476,50 @@ Function WelcomePageSetupLinkShow
   SendMessage $0 ${WM_SETFONT} $1 1
   Pop $0
 
+FunctionEnd
+
+!define LVM_GETITEMCOUNT 0x1004
+!define LVM_GETITEMTEXT 0x102D
+ 
+Function DumpLog
+  Exch $5
+  Push $0
+  Push $1
+  Push $2
+  Push $3
+  Push $4
+  Push $6
+ 
+  FindWindow $0 "#32770" "" $HWNDPARENT
+  GetDlgItem $0 $0 1016
+  StrCmp $0 0 exit
+  FileOpen $5 $5 "w"
+  StrCmp $5 "" exit
+    SendMessage $0 ${LVM_GETITEMCOUNT} 0 0 $6
+    System::Alloc ${NSIS_MAX_STRLEN}
+    Pop $3
+    StrCpy $2 0
+    System::Call "*(i, i, i, i, i, i, i, i, i) i \
+      (0, 0, 0, 0, 0, r3, ${NSIS_MAX_STRLEN}) .r1"
+    loop: StrCmp $2 $6 done
+      System::Call "User32::SendMessageA(i, i, i, i) i \
+        ($0, ${LVM_GETITEMTEXT}, $2, r1)"
+      System::Call "*$3(&t${NSIS_MAX_STRLEN} .r4)"
+      FileWrite $5 "$4$\r$\n"
+      IntOp $2 $2 + 1
+      Goto loop
+    done:
+      FileClose $5
+      System::Free $1
+      System::Free $3
+  exit:
+    Pop $6
+    Pop $4
+    Pop $3
+    Pop $2
+    Pop $1
+    Pop $0
+    Exch $5
 FunctionEnd
 
 Function LaunchVPNClient
@@ -477,8 +554,8 @@ Function .onInstSuccess
   RMDir "$EXEDIR\data"
   ;MessageBox MB_YESNO "$(StartApp)" IDNO NoReadme
    ;   Exec '"$INSTDIR\Spvpncl.exe" $finishParm' 
-      
-  NoReadme:
+    
+  ;NoReadme:
 FunctionEnd
 
 ;--------------------------------

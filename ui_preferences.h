@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'preferences.ui'
 **
-** Created: Mon Dec 31 20:47:47 2012
+** Created: Thu Jan 3 10:41:53 2013
 **      by: Qt User Interface Compiler version 4.8.4
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -113,8 +113,8 @@ public:
         sizePolicy.setVerticalStretch(0);
         sizePolicy.setHeightForWidth(Preferences->sizePolicy().hasHeightForWidth());
         Preferences->setSizePolicy(sizePolicy);
-        Preferences->setMinimumSize(QSize(0, 0));
-        Preferences->setMaximumSize(QSize(1111111, 111111));
+        Preferences->setMinimumSize(QSize(441, 0));
+        Preferences->setMaximumSize(QSize(441, 111111));
         QIcon icon;
         icon.addFile(QString::fromUtf8(":/images/logo.png"), QSize(), QIcon::Normal, QIcon::Off);
         Preferences->setWindowIcon(icon);
@@ -145,6 +145,7 @@ public:
         cmdToggleExtensions->setIcon(icon1);
         cmdToggleExtensions->setIconSize(QSize(22, 22));
         cmdToggleExtensions->setCheckable(true);
+        cmdToggleExtensions->setAutoDefault(true);
         cmdToggleExtensions->setFlat(true);
 
         horizontalLayout->addWidget(cmdToggleExtensions);
@@ -162,7 +163,7 @@ public:
         icon2.addFile(QString::fromUtf8(":/images/close_dialog.png"), QSize(), QIcon::Normal, QIcon::Off);
         cmdClose->setIcon(icon2);
         cmdClose->setIconSize(QSize(22, 22));
-        cmdClose->setDefault(true);
+        cmdClose->setAutoDefault(true);
         cmdClose->setFlat(true);
 
         horizontalLayout->addWidget(cmdClose);

@@ -69,7 +69,7 @@
     </font>
    </property>
    <property name="text">
-    <string>NTUMEMS OpevnVpn CLient 0.9.7</string>
+    <string>NTUMEMS OpevnVpn Client 0.9.7</string>
    </property>
    <property name="scaledContents">
     <bool>false</bool>
@@ -82,7 +82,7 @@
    <property name="geometry">
     <rect>
      <x>-20</x>
-     <y>40</y>
+     <y>60</y>
      <width>411</width>
      <height>16</height>
     </rect>
@@ -91,42 +91,10 @@
     <string>_____________________________________________________________________</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_5">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>60</y>
-     <width>221</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>For NTUMEMS Group Internal Use Only!! </string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_6">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>80</y>
-     <width>111</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Do not redistribute!!</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
   <widget class="QPushButton" name="cmdClose">
    <property name="geometry">
     <rect>
-     <x>280</x>
+     <x>290</x>
      <y>110</y>
      <width>100</width>
      <height>33</height>
@@ -157,19 +125,6 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QLabel" name="label_11">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>120</y>
-     <width>111</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>intra.ntumems.net</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_7">
    <property name="geometry">
     <rect>
@@ -181,6 +136,22 @@
    </property>
    <property name="text">
     <string>Based on Securepoint SSL VPN.</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_8">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>50</y>
+     <width>321</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Source available at https://github.com/jrywu/NTUMEMSOpenVPN</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>

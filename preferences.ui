@@ -18,13 +18,13 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>0</width>
+    <width>441</width>
     <height>0</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>1111111</width>
+    <width>441</width>
     <height>111111</height>
    </size>
   </property>
@@ -103,6 +103,9 @@ QPushButton {height: 25px; width: 45px;text-align:left;
       <property name="checkable">
        <bool>true</bool>
       </property>
+      <property name="autoDefault">
+       <bool>true</bool>
+      </property>
       <property name="flat">
        <bool>true</bool>
       </property>
@@ -132,7 +135,7 @@ QPushButton {height: 25px; width: 50px;text-align:left;
         <height>22</height>
        </size>
       </property>
-      <property name="default">
+      <property name="autoDefault">
        <bool>true</bool>
       </property>
       <property name="flat">

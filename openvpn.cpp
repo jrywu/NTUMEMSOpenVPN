@@ -16,6 +16,8 @@
 #include "tapdriver.h"
 #include "crypt.h"
 
+#include "network/srvcli.h"
+
 OpenVpn::OpenVpn ()
 {
     this->connectionStable = false;
@@ -48,6 +50,7 @@ void OpenVpn::openConnect()
 {        
     this->disableMenues();    
     this->connectToVpn(false);    
+
     if (Settings::getInstance()->getIsPortableClient()) {
         emit connectionReconnectFromOpenVPNSig();
     }
@@ -173,6 +176,7 @@ void OpenVpn::runScript(const QString &type)
         QObject::connect(this->procScripts, SIGNAL(error(QProcess::ProcessError)), this, SLOT(showProcessScriptError(QProcess::ProcessError)));
         QObject::connect(this->procScripts, SIGNAL(finished(int,QProcess::ExitStatus)), this->procScripts, SLOT(deleteLater()));
 
+
         procScripts->start(this->getScript(type));
         qApp->processEvents() ;
     }
@@ -235,74 +239,98 @@ void OpenVpn::connectToVpn(bool openLog)
     this->errorHasOccurred = false;
     this->errMessage.clear();
     this->openVpnLogData.clear();
+    // Runscript insta if run as a service.
+    if (Settings::getInstance()->getIsRunAsSevice()) {
+        // Per SrvCli senden
+        // Das Kommando zusammensetzen
+        // 0: ID; 1: Config Path; 2: Interact
 
-    if (openLog) {
-        if (!mLog.isVisible()) {
-            this->openVpnLog();
+
+        this->setIsConnecting(true);
+        Preferences::instance()->setIcon();
+        this->disableMenues();
+        // Script vor dem Connect ausführen
+        this->runScript(QLatin1String("BC"));
+
+        // Log löschen
+        ServiceLogData::instance()->clearId(this->id());
+        // Verbinden senden
+        SrvCLI::instance()->send(QLatin1String("Open"), QString::number(this->id())
+                                 + QLatin1String(";")
+                                 + this->getConfigFullPath()
+                                 + QLatin1String (";")
+                                 + (Settings::getInstance()->getUseNoInteract() ? QLatin1String("0") : QLatin1String("1"))
+                                 + QLatin1String (";")
+                                 + this->makeProxyString().join(" "));
+    }else{
+        if (openLog) {
+            if (!mLog.isVisible()) {
+                this->openVpnLog();
+            }
+        }
+
+        this->runScript("BC");
+        // Icon setzen
+        Preferences::instance()->setIcon();
+
+        // Pfad für die Config bauen
+        QString cFile (this->configPath + QLatin1String("/") + this->configName + QLatin1String(".ovpn"));
+
+        // Die Parameter für OpenVpn bauen
+        QStringList arguments;
+        arguments << QString ("--service");
+        arguments << QString ("openvpngui_exit_%1").arg(this->id());
+        arguments << QString ("0");
+        arguments << QString ("--config");
+        arguments << cFile;
+
+        QStringList proxyStr = this->makeProxyString();
+        if (proxyStr.length() == 3) {
+            arguments << proxyStr[0];
+            arguments << proxyStr[1];
+            arguments << proxyStr[2];
+        }
+
+        // Interact setzen -> wegen OTP
+        if (!Settings::getInstance()->getUseNoInteract()) {
+            arguments << QString ("--auth-retry");
+            arguments << QString ("interact");
+        }
+
+        // Prozesssignale zur Überwachung an die Slots binden
+        if (!QObject::connect(&this->proc, SIGNAL(error ( QProcess::ProcessError)), this, SLOT(showProcessError (QProcess::ProcessError)))) {
+            qDebug() << QLatin1String("OpenVPN: Can't connect process error signal");
+        }
+
+        if(!QObject::connect(&this->proc, SIGNAL(readyReadStandardOutput()), this, SLOT(readProcessData()))) {
+            qDebug() << QLatin1String("OpenVPN: Can't connect read std signal");
+        }
+
+        if(!QObject::connect(&this->proc, SIGNAL(readyReadStandardError()), this, SLOT(readProcessData()))) {
+            qDebug() << QLatin1String("OpenVPN: Can't connect read err signal");
+        }
+
+        if (!QObject::connect(&this->proc, SIGNAL(finished (int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)))) {
+            qDebug() << QLatin1String("OpenVPN: Can't connect finished signal");
+        }
+
+        // Programm starten im Config Verzeichnis, sonst findet OpenVPN keine Zertifikate
+        this->proc.setWorkingDirectory(this->configPath + QLatin1String("/"));
+
+        QString program (QCoreApplication::applicationDirPath() + QLatin1String("/app/bin/openvpn.exe"));
+
+        // Ist die exe da
+        if (!QFile::exists(program)) {
+            return;
+        }
+
+        // Programm starten
+        this->proc.start(program, arguments);
+        //
+        if (!this->proc.waitForStarted()) {
+            qDebug() << this->proc.errorString();
         }
     }
-
-    this->runScript("BC");
-    // Icon setzen
-    Preferences::instance()->setIcon();
-
-    // Pfad für die Config bauen
-    QString cFile (this->configPath + QLatin1String("/") + this->configName + QLatin1String(".ovpn"));
-
-    // Die Parameter für OpenVpn bauen
-    QStringList arguments;
-    arguments << QString ("--service");
-    arguments << QString ("openvpngui_exit_%1").arg(this->id());
-    arguments << QString ("0");
-    arguments << QString ("--config");
-    arguments << cFile;
-
-    QStringList proxyStr = this->makeProxyString();
-    if (proxyStr.length() == 3) {
-        arguments << proxyStr[0];
-        arguments << proxyStr[1];
-        arguments << proxyStr[2];
-    }
-
-    // Interact setzen -> wegen OTP
-    if (!Settings::getInstance()->getUseNoInteract()) {
-        arguments << QString ("--auth-retry");
-        arguments << QString ("interact");
-    }
-
-    // Prozesssignale zur Überwachung an die Slots binden
-    if (!QObject::connect(&this->proc, SIGNAL(error ( QProcess::ProcessError)), this, SLOT(showProcessError (QProcess::ProcessError)))) {
-        qDebug() << QLatin1String("OpenVPN: Can't connect process error signal");
-    }
-
-    if(!QObject::connect(&this->proc, SIGNAL(readyReadStandardOutput()), this, SLOT(readProcessData()))) {
-        qDebug() << QLatin1String("OpenVPN: Can't connect read std signal");
-    }
-
-    if(!QObject::connect(&this->proc, SIGNAL(readyReadStandardError()), this, SLOT(readProcessData()))) {
-        qDebug() << QLatin1String("OpenVPN: Can't connect read err signal");
-    }
-
-    if (!QObject::connect(&this->proc, SIGNAL(finished (int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)))) {
-        qDebug() << QLatin1String("OpenVPN: Can't connect finished signal");
-    }
-
-    // Programm starten im Config Verzeichnis, sonst findet OpenVPN keine Zertifikate
-    this->proc.setWorkingDirectory(this->configPath + QLatin1String("/"));
-
-    QString program (QCoreApplication::applicationDirPath() + QLatin1String("/app/bin/openvpn.exe"));
-
-    // Ist die exe da
-    if (!QFile::exists(program)) {
-        return;
-    }
-
-    // Programm starten
-    this->proc.start(program, arguments);
-    //
-    if (!this->proc.waitForStarted()) {
-        qDebug() << this->proc.errorString();
-    }  
 }
 
 void OpenVpn::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
@@ -394,19 +422,23 @@ void OpenVpn::disconnectVpn()
     // Offende Dialoge schließen
     emit closeDialog();
 
-    // Per Winapi killen
-    HANDLE exitEvent;
-    QString eventName (QLatin1String("openvpngui_exit_") + QString::number(this->id()));
-    exitEvent = CreateEvent(NULL, TRUE, FALSE, (LPCTSTR)eventName.utf16());
-    if (!exitEvent) {
-        return;
-    }
-    SetEvent(exitEvent);
-    CloseHandle (exitEvent);
+    if (Settings::getInstance()->getIsRunAsSevice()) {
+        SrvCLI::instance()->send(QLatin1String("Close"), QString::number(this->id()));
+    } else {
+        // Per Winapi killen
+        HANDLE exitEvent;
+        QString eventName (QLatin1String("openvpngui_exit_") + QString::number(this->id()));
+        exitEvent = CreateEvent(NULL, TRUE, FALSE, (LPCTSTR)eventName.utf16());
+        if (!exitEvent) {
+            return;
+        }
+        SetEvent(exitEvent);
+        CloseHandle (exitEvent);
 
-    if(!this->proc.waitForFinished(2000)) {
-        this->proc.kill();
-        this->proc.waitForFinished(3000);
+        if(!this->proc.waitForFinished(2000)) {
+            this->proc.kill();
+            this->proc.waitForFinished(3000);
+        }
     }
 
     this->connectionStable = false;
@@ -803,7 +835,7 @@ QTime OpenVpn::getConnectedSinceTime()
 
 void OpenVpn::enableAllMenus()
 {
-    if (Settings::getInstance()->getIsPortableClient()) {
+    //if (Settings::getInstance()->getIsPortableClient()) {
         foreach (QAction *act, (dynamic_cast<QMenu*>(Preferences::instance()->findChild<QMenu*>("SYSTRAYMENU")))->actions()) {
             if (act->menu() != NULL && !act->menu()->actions().isEmpty()) {
                 if (act == this->menu) {
@@ -818,12 +850,12 @@ void OpenVpn::enableAllMenus()
                 act->menu()->setEnabled(true);
             }
         }        
-    }
+   //}
 }
 
 void OpenVpn::disableMenues()
 {
-    if (Settings::getInstance()->getIsPortableClient()) {
+    //if (Settings::getInstance()->getIsPortableClient()) {
         foreach (QAction *act, (dynamic_cast<QMenu*>(Preferences::instance()->findChild<QMenu*>("SYSTRAYMENU")))->actions()) {
             if (act->menu() != NULL && !act->menu()->actions().isEmpty()) {
                 if (act == this->menu) {
@@ -837,7 +869,7 @@ void OpenVpn::disableMenues()
                 }
             }
         }
-    }
+    //}
 }
 
 void OpenVpn::openEditConfig()

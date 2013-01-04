@@ -130,6 +130,7 @@ void Preferences::setDisconnected(int id)
         }
     }
     this->setIcon();
+    this->showBallonMessage();//Update tooltip.
 }
 
 void Preferences::setError(int id, QString message)
@@ -153,6 +154,7 @@ void Preferences::setError(int id, QString message)
             break;
         }        
     }    
+    //this->createTrayIcon();
     this->setIcon();
 }
 
@@ -240,8 +242,12 @@ void Preferences::showBallonMessage()
             message += QObject::tr("Name: ") + vpn->getConfigName() + QLatin1String("\nIP: ") + vpn->getConnectionIP() + QLatin1String("\n");
         }
     }
-
+    //Jeremy '13,1,2, update tooltip and show ballon message when disconnected
+    if(message == "")
+        message += QObject::tr("NTUMEMS OpenVPN \nAll connecitons disconneted.");
     this->showTrayMessageChecked(message, QSystemTrayIcon::Information, 6000);
+    trayIcon->setToolTip(message); // Show conneted info as tooltip.
+
 }
 
 bool Preferences::isConnectionActive() const
@@ -264,7 +270,8 @@ bool Preferences::isConnectionActive() const
 
 void Preferences::trayActivated(QSystemTrayIcon::ActivationReason reason)
 {
-    if (reason == QSystemTrayIcon::DoubleClick) {
+
+    if(reason == QSystemTrayIcon::DoubleClick ){
         if (!this->isMinimized()) {
             this->refreshDialog();
             this->setIcon();
@@ -280,8 +287,10 @@ void Preferences::trayActivated(QSystemTrayIcon::ActivationReason reason)
             this->showNormal();
             this->setFocus();
             this->activateWindow();
+            //this->showBallonMessage();
         }
     }
+
 }
 
 void Preferences::refreshConfigList()
@@ -750,7 +759,7 @@ void Preferences::createTrayIcon()
     }
     trayIconMenu = new QMenu(this);
     trayIconMenu->setObjectName("SYSTRAYMENU");
-    if (Settings::getInstance()->getIsPortableClient()) {
+    //if (Settings::getInstance()->getIsPortableClient()) {  //Show sub-menu whenever
         foreach (ListObject i, Configs::getInstance()->getConfigsObjects()) {
             OpenVpn *configObj = i.second;
             // Make new Menu from Config
@@ -766,7 +775,7 @@ void Preferences::createTrayIcon()
             mySubAction->setDisabled(true);
             connect(mySubAction, SIGNAL(triggered()), configObj, SLOT(disconnectVpn()));
             trayTest->addAction (mySubAction);
-
+            /*
             trayTest->addSeparator();
 
             mySubAction = new QAction(QIcon(":/images/logstartstop.png"), tr ("Show log"), this);
@@ -778,22 +787,29 @@ void Preferences::createTrayIcon()
             mySubAction->setObjectName(configObj->getConfigName());
             connect(mySubAction, SIGNAL(triggered()), configObj, SLOT(openEditConfig()));
             trayTest->addAction (mySubAction);
+            */
             // Append to Main Menu
             configObj->menu = trayIconMenu->addMenu(trayTest);
+
+
         }
         trayIconMenu->addSeparator();
-    }
+    //}
+
 
     trayIconMenu->addAction(preferencesAction);
     trayIconMenu->addSeparator();
     if (Settings::getInstance()->getIsPortableClient() || Settings::getInstance()->getIsManageClient()) {
         trayIconMenu->addAction(proxyAction);
-        trayIconMenu->addAction(appInfoAction);
-        trayIconMenu->addSeparator();
+        //trayIconMenu->addAction(appInfoAction);
+        //trayIconMenu->addSeparator();
     }
+    trayIconMenu->addAction(appInfoAction);
+    trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
     trayIcon = new QSystemTrayIcon(this);
     trayIcon->setContextMenu(trayIconMenu);
+    trayIcon->setToolTip(tr("NTUMEMS OpenVPN"));
     QObject::connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(trayActivated(QSystemTrayIcon::ActivationReason)));
     this->setIcon();
 }
@@ -809,10 +825,9 @@ void Preferences::createActions()
         proxyAction = new QAction (QIcon(":/images/proxy.png"), QObject::tr("&Proxy Settings"), this);
         QObject::connect(proxyAction, SIGNAL(triggered()), this, SLOT(openProxySettings()));
 
-        appInfoAction = new QAction (QIcon(":/images/info.png"),tr("&About..."), this);
-        QObject::connect (appInfoAction, SIGNAL(triggered()), this, SLOT(openAppInfo()));
     }
-
+    appInfoAction = new QAction (QIcon(":/images/info.png"),tr("&About..."), this);
+    QObject::connect (appInfoAction, SIGNAL(triggered()), this, SLOT(openAppInfo()));
     quitAction = new QAction(QIcon(":/images/system-log-out.png"),tr("&Quit"), this);
     QObject::connect(quitAction, SIGNAL(triggered()), this, SLOT(closeApp()));
 }
@@ -863,7 +878,6 @@ void Preferences::setIcon()
     //
     // Die Connection liste durchlaufen und nach connectionstate das icon setzen
     //
-
     bool configError (false);
     bool configConnecting (false);
     bool configConnected (false);
@@ -873,9 +887,12 @@ void Preferences::setIcon()
         // Item und OpenVpn Objekt holen
         TreeConItem *item = dynamic_cast<TreeConItem*>(m_ui->trvConnections->invisibleRootItem()->child(x));
         TreeButton *but = item->getTreeButton();
+        if(item->getOpenVPN()->isConnecting())//update tree button status if connect is triggered in sub-menu
+            but->setConnecting();
         switch (but->getState()) {
             case 1:
                 configConnecting = true;
+                trayIcon->setToolTip(tr("NTUMEMS OpenVPN \nConnecting..."));
                 break;
             case 2:
                 configConnected = true;
@@ -930,11 +947,11 @@ void Preferences::showTrayMessage(const QString &message, QSystemTrayIcon::Messa
 
 void Preferences::showTrayMessageChecked(const QString &message, QSystemTrayIcon::MessageIcon messageType, int duration)
 {    
-    if (!this->isVisible()) {        
-        if (!Settings::getInstance()->getIsShowNoBallonMessage()) {            
+    //if (!this->isVisible()) {        //Jeremy '13,1,2 Show tray message whatever the dialog is visible
+    if (!Settings::getInstance()->getIsShowNoBallonMessage()) {
             this->trayIcon->showMessage(QObject::tr("NTUMEMS OpenVPN"), message, messageType, duration);
-        }
     }
+    //}
 }
 
 void Preferences::on_cmdOpenInfo_clicked()
