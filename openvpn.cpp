@@ -1014,8 +1014,10 @@ QString OpenVpn::getSavedUserData(int type)
     // 4 - Private Key für Crypted User Data
     if (type == 0) {
         key = QLatin1String ("data/user");
+        qDebug() << "Retriving username:";
     } else if (type == 1) {
         key = QLatin1String ("data/pass");
+        qDebug() << "Retriving password:";
     } else if (type == 3) {
         key = QLatin1String ("data/pkcs12");
     } else if (type == 5) {
@@ -1036,6 +1038,7 @@ QString OpenVpn::getSavedUserData(int type)
             Crypt crypt;
             crypt.setSecretKey(Settings::getInstance()->getCryptKey());
             value = QString (crypt.cryptToPlainTextExt(value.toAscii()));
+            qDebug() << "value=" << value;
         }
     }
 

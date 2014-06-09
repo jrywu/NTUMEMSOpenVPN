@@ -64,18 +64,20 @@ void Settings::refresh()
     this->cryptKey = sett.value(QLatin1String("self/key"), QLatin1String("")).toString();
     if (!this->cryptKey.isEmpty()) {        
         Crypt crypt;
-        this->cryptKey = QString(crypt.cryptToPlainTextExt(this->cryptKey.toAscii()));        
+        qDebug()  << "Key=" <<  this->cryptKey;
+        this->cryptKey = QString(crypt.cryptToPlainTextExt(this->cryptKey.toAscii()));
+        qDebug() << "key before crypt==" <<  this->cryptKey;
     } else {
         // Neuen Key erzeugen
         qsrand(QDateTime::currentDateTime().toTime_t());
         QString _t1 (QString::number((qrand() % 1500) + 1));
         QString _t2 (QString::number((qrand() % 2500) + 1));
         QString key (QLatin1String("S3m!BHF") + _t1 + QLatin1String("83$%§kd") + _t2 + QString::number(QDateTime::currentDateTime().toTime_t()) + _t1);
-        //qDebug() << "key before crypt=" << key;
+        qDebug() << "key before crypt=" << key;
         Crypt crypt;
         key = QString(crypt.cryptPlainTextExt(key.toAscii()));
 
-        //qDebug() << "key=" << key;
+        qDebug() << "key=" << key;
         sett.setValue(QLatin1String("self/key"), key);
         this->cryptKey = key;
     }
